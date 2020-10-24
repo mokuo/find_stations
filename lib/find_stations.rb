@@ -2,11 +2,11 @@
 
 require "bundler/setup"
 require "csv"
-# require "pry" # binding.pry
+require "pry" # binding.pry
 
 require_relative "./find_stations/station"
 require_relative "./find_stations/train_route"
-require_relative "./find_stations/heart_rails/express_api_client"
+require_relative "./find_stations/train_route_search_engine"
 
 module FindStations
   START_STATION_NAME = ARGV[0]
@@ -15,33 +15,34 @@ module FindStations
 
   puts "start!"
 
-  client = HeartRails::ExpressApiClient.new
+  search_engine = TrainRouteSearchEngine.new
   result_train_routes = []
 
-  line_stations = client.get_stations_by(station_name: START_STATION_NAME)
-  stations = line_stations.flat_map { |station| client.get_stations_by(train_line_name: station.line) }
-  train_routes = stations.map { |station| TrainRoute.new(START_STATION_NAME).append_station(station) }
+  # START_STATION_NAME を通る路線一覧を取得
+  search_result = search_engine.search_train_lines(START_STATION_NAME)
+  # 各路線を通る駅一覧を取得
+  search_results = search_result.stations.map { |station| search_engine.search_train_stations(station.line) }
 
+  # 経路情報を作成
+  train_routes = search_results.flat_map do |sr|
+    sr.stations.map { |station| TrainRoute.new(START_STATION_NAME).append_station(station) }
+  end
   result_train_routes += train_routes
 
-  train_route_and_line_stations_list = train_routes.map do |train_route|
-    line_stations = client.get_stations_by(station_name: train_route.stations.first.name)
-    { train_route: train_route, line_stations: line_stations }
+  # １つ目の路線の各駅を通る路線一覧を取得
+  search_results = train_routes.map do |train_route|
+    search_result = search_engine.search_train_lines(train_route.stations.first.name, train_route)
   end
 
-  train_route_and_stations_list = train_route_and_line_stations_list.map do |train_route_and_line_stations|
-    train_route = train_route_and_line_stations[:train_route]
-    line_stations = train_route_and_line_stations[:line_stations]
-
-    stations = line_stations.flat_map { |station| client.get_stations_by(train_line_name: station.line) }
-    { train_route: train_route, stations: stations }
+  # ２つ目の路線を通る駅一覧を取得
+  search_results = search_results.flat_map do |sr|
+    sr.stations.map { |station| search_engine.search_train_stations(station.line, search_result.train_route) }
   end
 
-  train_routes = train_route_and_stations_list.flat_map do |train_route_and_stations|
-    train_route = train_route_and_stations[:train_route]
-    stations = train_route_and_stations[:stations]
-
-    stations.map { |station| train_route.append_station(station) }
+  # 経路情報を作成
+  train_routes = search_results.flat_map do |sr|
+    train_route = sr.train_route
+    sr.stations.map { |station| train_route.append_station(station) }
   end
 
   result_train_routes += train_routes
