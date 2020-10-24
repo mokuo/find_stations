@@ -5,21 +5,7 @@ require "uri"
 require "faraday"
 require "json"
 require "csv"
-require "pry" # binding.pry
-
-# CSV イメージ
-# 出発駅,路線１,駅１,路線２,駅２,所要時間（分）
-# 表参道,千代田線,北千住,,,分
-# 表参道,千代田線,北千住,ホゲ１線,ほげ１駅,分
-# 表参道,千代田線,北千住,ホゲ２線,ほげ２駅,分
-# 表参道,千代田線,綾瀬,,,分
-# 表参道,千代田線,綾瀬,ほげ,hoge,分
-
-# 手順：
-# 表参道を通る路線リストを取得 千代田線
-# 各路線の駅リストを取得 北千住
-# 各駅を通る路線リストを取得 ほげ線
-# 各路線の通る駅リストを取得 ほげ駅
+# require "pry" # binding.pry
 
 # ref: http://express.heartrails.com/api.html
 class Station
@@ -124,19 +110,3 @@ CSV.open("tmp/stations.csv", "wb") do |csv|
 end
 
 puts "...finish!"
-
-# station_name = URI.encode_www_form_component("表参道")
-# res = Faraday.get "http://express.heartrails.com/api/json?method=getStations&name=#{station_name}"
-# train_line_name = JSON.parse(res.body, symbolize_names: true)[:response][:station][0][:line]
-
-# train_line_name = URI.encode_www_form_component(train_line_name)
-# res = Faraday.get "http://express.heartrails.com/api/json?method=getStations&line=#{train_line_name}"
-# station_name = JSON.parse(res.body, symbolize_names: true)[:response][:station][0][:name]
-
-# station_name = URI.encode_www_form_component(station_name)
-# res = Faraday.get "http://express.heartrails.com/api/json?method=getStations&name=#{station_name}"
-# train_line_name = JSON.parse(res.body, symbolize_names: true)[:response][:station][0][:line]
-
-# train_line_name = URI.encode_www_form_component(train_line_name)
-# res = Faraday.get "http://express.heartrails.com/api/json?method=getStations&line=#{train_line_name}"
-# station_name = JSON.parse(res.body, symbolize_names: true)[:response][:station][0][:name]
