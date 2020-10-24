@@ -2,3 +2,5 @@ Style/StringLiterals:
   EnforcedStyle: double_quotes
 Style/AsciiComments:
   Enabled: false # 日本語コメント
+Style/Documentation:
+  Enabled: false # ドキュメント
