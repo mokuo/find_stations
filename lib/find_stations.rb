@@ -5,8 +5,8 @@ require "csv"
 require "pry" # binding.pry
 
 require_relative "./find_stations/station"
-require_relative "./find_stations/train_route"
 require_relative "./find_stations/train_route_search_engine"
+require_relative "./find_stations/train_routes_factory"
 
 module FindStations
   START_STATION_NAME = ARGV[0]
@@ -24,14 +24,12 @@ module FindStations
   search_results = search_result.stations.map { |station| search_engine.search_train_stations(station.line) }
 
   # 経路情報を作成
-  train_routes = search_results.flat_map do |sr|
-    sr.stations.map { |station| TrainRoute.new(START_STATION_NAME).append_station(station) }
-  end
+  train_routes = TrainRoutesFactory.create(START_STATION_NAME, search_results)
   result_train_routes += train_routes
 
   # １つ目の路線の各駅を通る路線一覧を取得
   search_results = train_routes.map do |train_route|
-    search_result = search_engine.search_train_lines(train_route.stations.first.name, train_route)
+    search_engine.search_train_lines(train_route.stations.first.name, train_route)
   end
 
   # ２つ目の路線を通る駅一覧を取得
@@ -40,11 +38,7 @@ module FindStations
   end
 
   # 経路情報を作成
-  train_routes = search_results.flat_map do |sr|
-    train_route = sr.train_route
-    sr.stations.map { |station| train_route.append_station(station) }
-  end
-
+  train_routes = TrainRoutesFactory.create(START_STATION_NAME, search_results)
   result_train_routes += train_routes
 
   CSV.open("tmp/stations.csv", "wb") do |csv|
