@@ -8,6 +8,7 @@ gem "faraday"
 
 group :development, :test do
   gem "rspec"
+  gem "rspec-parameterized"
 end
 
 group :development do
