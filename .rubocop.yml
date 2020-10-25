@@ -6,3 +6,5 @@ Style/AsciiComments:
   Enabled: false # 日本語コメント
 Style/Documentation:
   Enabled: false # ドキュメント
+RSpec/ContextWording:
+  Enabled: false # 日本語が想定されていないため
